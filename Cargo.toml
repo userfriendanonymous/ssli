@@ -1,0 +1,21 @@
+[package]
+name = "claw"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[dependencies]
+clap = { version = "4.2.4", features = ["derive"] }
+colored = "2.0.0"
+directories = "5.0.0"
+rand = "0.8.5"
+rpassword = "7.2.0"
+s2rs = { version = "0.4.13", features = ["cookie"] }
+serde = "1.0.160"
+serde_json = "1.0.96"
+tokio = { version = "1.28.0", features = ["macros", "fs", "rt-multi-thread"] }
