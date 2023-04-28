@@ -1,24 +1,31 @@
 use std::sync::Arc;
-
 use colored::Colorize;
 use rpassword::read_password as read_secret;
-use crate::{input::{Input, Command, UserCommand}, store::{Store, Session}};
+use crate::{input::{Input, Command, ProjectCommand, UserCommand}, store::{Store, Session}, output::{Output, OutputAsResult}};
+use error::ResultUtils;
 
-pub async fn entry(input: Input, store: Store, session: Arc<s2rs::Session>) {
+mod user;
+mod project;
+mod studio;
+mod forum;
+mod forum_post;
+mod error;
+
+pub async fn entry(input: Input, store: Store, session: Arc<s2rs::Session>) -> Result<Output, Output> {
     match input.command {
         Command::Auth { name } => {
             println!("Your scratch {}: (Character casing {} be correct)",
             "username".yellow(),
             "must".bold());
-            let scratch_name = read_secret().unwrap();
+            let scratch_name = read_secret().output_err()?;
 
             println!("{}:",
             "X-Token".yellow());
-            let x = read_secret().unwrap();
+            let x = read_secret().output_err()?;
 
             println!("{}:",
             "SessionID-Token".yellow());
-            let session = read_secret().unwrap();
+            let session = read_secret().output_err()?;
 
             store.add_session(name, Session {
                 name: scratch_name,
@@ -33,7 +40,7 @@ pub async fn entry(input: Input, store: Store, session: Arc<s2rs::Session>) {
             println!("Your scratch {}: (Character casing {} be correct)",
             "username".yellow(),
             "must".bold());
-            let scratch_name = read_secret().unwrap();
+            let scratch_name = match read_secret()
 
             println!("{}:",
             "Password".yellow());
@@ -57,48 +64,57 @@ pub async fn entry(input: Input, store: Store, session: Arc<s2rs::Session>) {
             let sessions = store.sessions().await;
             store.set_main_session(sessions.items.get(&to).unwrap()).await.unwrap();
 
-            println!("{} switched session to {}.",
+            let v = format!(
+                "{} switched session to {}.",
                 "Successfully".green(),
                 (&to).yellow(),
             );
+
+            panic![  ];
         },
 
         Command::User { name, command } => {
-            match command {
-                UserCommand::Comment { content, to, parent } => {
-                    session.user(name.as_str()).send_comment(content).await.unwrap();
-                    println!("{} left a comment on {}'s profile.",
-                        "Successfully".green(),
-                        name.yellow(),
-                    );
-                }
-            }
-        }
+            user::entry(name, command, store, session).await
+        },
+
+        Command::Project { id, command } => {
+            project::entry(id, command, store, session).await
+        },
+
+        Command::Studio { id, command } => {
+            studio::entry(id, command, store, session).await
+        },
+
+        Command::Forum { id, command } => {
+            forum::entry(id, command, store, session).await
+        },
+
+        Command::ForumPost { id, command } => {
+            forum_post::entry(id, command, store, session).await
+        },
 
         Command::Follow { name } => {
-            session.user(name.as_str()).follow().await.unwrap();
-            println!("{} followed {}.", "Successfully".green(), (&name).yellow());
+            user::entry(name, UserCommand::Follow, store, session).await
         },
 
         Command::Unfollow { name } => {
-            session.user(name.as_str()).unfollow().await.unwrap();
-            println!("{} unfollowed {}.", "Successfully".green(), (&name).yellow());
+            user::entry(name, UserCommand::Unfollow, store, session).await
         },
 
         Command::Love { id } => {
-            session.project(id).love().await.unwrap();
-            println!("{} loved {}.",
-                "Successfully".green(),
-                id.to_string().yellow()
-            );
+            project::entry(id, ProjectCommand::Love, store, session).await
         }
 
         Command::Fav { id } => {
-            session.project(id).favorite().await.unwrap();
-            println!("{} favorited {}.",
-                "Successfully".green(),
-                id.to_string().yellow()
-            );
+            project::entry(id, ProjectCommand::Fav, store, session).await
         },
+
+        Command::Unfav { id } => {
+            project::entry(id, ProjectCommand::Unfav, store, session).await
+        },
+
+        Command::Unlove { id } => {
+            project::entry(id, ProjectCommand::Unlove, store, session).await
+        }
     }
 }

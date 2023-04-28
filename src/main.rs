@@ -5,6 +5,8 @@ use store::{Store};
 mod input;
 mod store;
 mod session;
+mod output;
+
 
 #[tokio::main]
 async fn main() {
@@ -19,5 +21,6 @@ async fn main() {
         x: main_session.x
     }).unwrap();
 
-    session::entry(input, store, session).await;
+    let output = session::entry(input, store, session).await.unwrap_or_else(|e| e);
+    println!("{}", output.finish());
 }
