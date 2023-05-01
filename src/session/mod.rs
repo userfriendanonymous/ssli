@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use colored::Colorize;
 use rpassword::read_password as read_secret;
-use crate::{input::{Input, Command, ProjectCommand, UserCommand}, store::{Store, Session}, output::{Output, OutputAsResult}};
+use crate::{input::{Input, Command, ProjectCommand, UserCommand}, store::{Store, Session}, output::{Output, OutputAsResult, OutputErr}};
 use error::ResultUtils;
 
 mod user;
@@ -31,22 +31,25 @@ pub async fn entry(input: Input, store: Store, session: Arc<s2rs::Session>) -> R
                 name: scratch_name,
                 session,
                 x
-            }).await.unwrap();
+            }).await.output_err()?;
 
-            println!("{} added session.", "Successfully".green());
+            Ok(format![
+                "{} added session.",
+                "Successfully".green()
+            ].into())
         },
 
         Command::Login { name } => {
             println!("Your scratch {}: (Character casing {} be correct)",
             "username".yellow(),
             "must".bold());
-            let scratch_name = match read_secret()
+            let scratch_name = read_secret().output_err()?;
 
             println!("{}:",
             "Password".yellow());
-            let password = read_secret().unwrap();
+            let password = read_secret().output_err()?;
 
-            let data = session.me().login(&scratch_name, &password).await.unwrap();
+            let data = session.me().login(&scratch_name, &password).await.output_err()?;
 
             let session = Session {
                 name: scratch_name,
@@ -57,20 +60,18 @@ pub async fn entry(input: Input, store: Store, session: Arc<s2rs::Session>) -> R
             store.add_session(name, session.clone()).await.unwrap();
             store.set_main_session(&session).await.unwrap();
 
-            println!("{} logged in.", "Successfully".green());
+            Ok(format!["{} logging in", "Success".green()].into())
         }
 
         Command::Switch { to } => {
             let sessions = store.sessions().await;
             store.set_main_session(sessions.items.get(&to).unwrap()).await.unwrap();
 
-            let v = format!(
-                "{} switched session to {}.",
-                "Successfully".green(),
+            Ok(format!(
+                "{} switching session to {}",
+                "Success".green(),
                 (&to).yellow(),
-            );
-
-            panic![  ];
+            ).into())
         },
 
         Command::User { name, command } => {
