@@ -1,29 +1,15 @@
-use std::sync::Arc;
-use colored::Colorize;
-use crate::{input::StudioCommand, store::Store, output::{Output, OutputErr}};
+use super::Session;
 
-pub async fn entry(id: u64, command: StudioCommand, store: Store, session: Arc<s2rs::Session>) -> Result<Output, Output> {
-    let this = session.studio(id);
+impl Session {
+    pub async fn follow_studio(&self, id: u64) -> s2rs::api::Result<()> {
+        self.scratch.follow_studio(id).await
+    }
 
-    let result: Result<Output, Output> = match command {
-        StudioCommand::Comment { content, to, parent } => {
-            this.send_comment(&content).await.output_err()?;
-            Ok("Leaving a comment".into())
-        },
+    pub async fn unfollow_studio(&self, id: u64) -> s2rs::api::Result<()> {
+        self.scratch.unfollow_studio(id).await
+    }
 
-        StudioCommand::Follow => {
-            this.follow().await.output_err()?;
-            Ok("Following".into())
-        },
-
-        StudioCommand::Unfollow => {
-            this.unfollow().await.output_err()?;
-            Ok("Un-following".into())
-        }
-    };
-
-    Ok(Output::from(format![
-        "On studio #{}",
-        id.to_string().yellow()
-    ]).with(result?))
+    pub async fn send_studio_comment(&self, id: u64, content: &str, parent_id: Option<u64>, to_id: Option<u64>) -> s2rs::api::Result<()> {
+        self.scratch.send_studio_comment(id, content, parent_id, to_id).await
+    }
 }

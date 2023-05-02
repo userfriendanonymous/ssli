@@ -12,11 +12,11 @@ mod forum_post;
 
 pub struct Session {
     store: Arc<Store>,
-    scratch: Arc<s2rs::Session>,
+    scratch: Arc<s2rs::Api>,
 }
 
 impl Session {
-    pub fn new(store: Arc<Store>, scratch: Arc<s2rs::Session>) -> Self {
+    pub fn new(store: Arc<Store>, scratch: Arc<s2rs::Api>) -> Self {
         Self {
             scratch,
             store
@@ -103,7 +103,7 @@ impl Session {
         "Password".yellow());
         let password = read_secret()?;
 
-        let data = self.scratch.me().login(&scratch_name, &password).await?;
+        let data = self.scratch.login(&scratch_name, &password).await?;
 
         let session = store::Session {
             name: scratch_name,

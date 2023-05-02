@@ -18,7 +18,7 @@ async fn main() {
     let store = Arc::new(Store::new().unwrap());
     let main_session = store.main_session().await;
 
-    let scratch = s2rs::Session::with_auth(main_session.name, &Tokens {
+    let scratch = s2rs::Api::with_auth(main_session.name, &Tokens {
         csrf: "a".to_owned(),
         session: main_session.session,
         x: main_session.x
@@ -27,5 +27,5 @@ async fn main() {
     let session = Arc::new(Session::new(store, scratch));
 
     let output = input.run(session).await;
-    println!("{}", output.finish());
+    println!("{}", output.finish(0));
 }

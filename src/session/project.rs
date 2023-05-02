@@ -1,39 +1,23 @@
-use std::sync::Arc;
-use colored::Colorize;
-use crate::{input::ProjectCommand, store::Store, output::{Output, OutputErr}};
+use super::Session;
 
-pub async fn entry(id: u64, command: ProjectCommand, store: Store, session: Arc<s2rs::Session>) -> Result<Output, Output> {
-    let this = session.project(id);
+impl Session {
+    pub async fn love_project(&self, id: u64) -> s2rs::api::Result<()> {
+        self.scratch.love_project(id).await
+    }
 
-    let result: Result<Output, Output> = match command {
-        ProjectCommand::Comment { content, to, parent } => {
-            this.send_comment(content.as_str()).await.output_err()?;
-            Ok("Leaving a comment".into())
-        },
-        
-        ProjectCommand::Fav => {
-            this.love().await.output_err()?;
-            Ok("Loving".into())
-        },
+    pub async fn unlove_project(&self, id: u64) -> s2rs::api::Result<()> {
+        self.scratch.unlove_project(id).await
+    }
 
-        ProjectCommand::Love => {
-            this.favorite().await.output_err()?;
-            Ok("Favoriting".into())
-        },
+    pub async fn favorite_project(&self, id: u64) -> s2rs::api::Result<()> {
+        self.scratch.favorite_project(id).await
+    }
 
-        ProjectCommand::Unlove => {
-            this.unlove().await.output_err()?;
-            Ok("Un-loving".into())
-        },
+    pub async fn unfavorite_project(&self, id: u64) -> s2rs::api::Result<()> {
+        self.scratch.unfavorite_project(id).await
+    }
 
-        ProjectCommand::Unfav => {
-            this.unfavorite().await.unwrap();
-            Ok("Un-favoriting".into())
-        },
-    };
-    
-    Ok(Output::from(format![
-        "On project #{}",
-        id.to_string().yellow()
-    ]).with(result?))
+    pub async fn send_project_comment(&self, id: u64, content: &str, parent_id: Option<u64>, to_id: Option<u64>) -> s2rs::api::Result<()> {
+        self.scratch.send_project_comment(id, content, parent_id, to_id).await
+    }
 }

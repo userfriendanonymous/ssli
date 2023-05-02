@@ -14,6 +14,27 @@ use colored::{Colorize, ColoredString};
 //     }
 // }
 
+pub trait WithOutput {
+    fn with_output(self, output: impl Into<Output>) -> Output;
+}
+
+impl WithOutput for String {
+    fn with_output(mut self, output: impl Into<Output>) -> Output {
+        let (this, children) = output.into().unwrap();
+        self.push_str(&this);
+
+        let mut output = Output::from(self);
+        output.replace_children(children);
+        output
+    }
+}
+
+impl WithOutput for &str {
+    fn with_output(self, output: impl Into<Output>) -> Output {
+        self.to_owned().with_output(output)
+    }
+}
+
 pub struct Output {
     this: String,
     children: Vec<Self>,
@@ -24,18 +45,31 @@ impl Output {
         self.children.push(item.into());
     }
 
+    pub fn replace_children(&mut self, children: Vec<Self>) {
+        self.children = children
+    }
+
     pub fn with(mut self, item: impl Into<Self>) -> Self {
         self.push(item);
         self
     }
 
-    pub fn finish(self) -> String {
+    pub fn unwrap(self) -> (String, Vec<Self>) {
+        (self.this, self.children)
+    }
+
+    pub fn finish(self, mut ident: u8) -> String {
         let mut result = self.this;
         
+        ident += 1;
         for child in self.children {
-            result.push_str("\n    ");
-            result.push_str(&child.finish());
+            result.push('\n');
+            for _ in 0..ident {
+                result.push_str("   ");
+            }
+            result.push_str(&child.finish(ident + 1));
         }
+        result.push('\n');
         result
     }
 }
