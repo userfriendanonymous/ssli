@@ -1,10 +1,21 @@
+use std::sync::Arc;
 use clap::{Parser, Subcommand};
+use crate::{output::Output, session::Session};
+pub use user::*;
+
+pub mod user;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 pub struct Input {
     #[clap(subcommand)]
     pub command: Command,
+}
+
+impl Input {
+    pub async fn run(self, session: Arc<Session>) -> Output {
+        self.command.run(session).await
+    }
 }
 
 #[derive(Debug, Subcommand)]
@@ -16,7 +27,7 @@ pub enum Command {
     User {
         name: String,
         #[clap(subcommand)]
-        command: UserCommand
+        command: User
     },
     Project {
         id: u64,
@@ -48,18 +59,34 @@ pub enum Command {
     Unfav { id: u64 },
 }
 
-#[derive(Debug, Subcommand)]
-pub enum UserCommand {
-    Comment {
-        content: String,
-        #[arg(short, long)]
-        to: Option<u64>,
-        #[arg(short, long)]
-        parent: Option<u64>,
-    },
-    Follow,
-    Unfollow,
+impl Command {
+    pub async fn run(self, session: Arc<Session>) -> Output {
+        match self {
+            Self::Auth { name } => {
+                session.add_auth(name).await.map(|_| Output::from("Adding authentication")).into()
+            },
+
+            Self::Switch { to } => {
+                session.switch(to).await.map(|_| Output::from("Switching auth")).into()
+            },
+
+            Self::Login { name } => {
+                session.login(name).await.map(|_| Output::from("Logging in")).into()
+            },
+
+            Self::User { name, command } => {
+                command.run(name, session).await
+            },
+
+            Self::Follow { name } => {
+                User::Follow.run(name, session).await
+            }
+
+            _ => todo!()
+        }
+    }
 }
+
 
 #[derive(Debug, Subcommand)]
 pub enum ProjectCommand {

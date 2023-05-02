@@ -211,6 +211,7 @@ dependencies = [
  "rand",
  "rpassword",
  "s2rs",
+ "s2rs-derive",
  "serde",
  "serde_json",
  "tokio",

@@ -1,4 +1,18 @@
-use crate::store;
+use colored::{Colorize, ColoredString};
+
+// pub trait OutputCover: Into<Output> {
+//     fn output_cover() -> Output;
+// }
+
+// pub trait CoveredOutput {
+//     fn covered_output(self) -> Output;
+// }
+
+// impl<T: OutputCover> CoveredOutput for T {
+//     fn covered_output(self) -> Output {
+//         Self::output_cover().with(self)
+//     }
+// }
 
 pub struct Output {
     this: String,
@@ -26,11 +40,41 @@ impl Output {
     }
 }
 
+// impl From<()> for Output {
+//     fn from(value: ()) -> Self {
+//         Output::from("")
+//     }
+// }
+
 impl From<String> for Output {
     fn from(this: String) -> Self {
         Self {
             children: Vec::new(),
             this
+        }
+    }
+}
+
+impl From<ColoredString> for Output {
+    fn from(value: ColoredString) -> Self {
+        Self::from(format!["{value}"])
+    }
+}
+
+impl<T: Into<Output>, E: Into<Output>> From<Result<T, E>> for Output {
+    fn from(value: Result<T, E>) -> Self {
+        match value {
+            Ok(data) => Output::from("Success".green()).with(data.into()),
+            Err(err) => Output::from("Error".red()).with(err.into())
+        }
+    }
+}
+
+impl<E: Into<Output>> From<Result<(), E>> for Output {
+    fn from(value: Result<(), E>) -> Self {
+        match value {
+            Ok(data) => "Success".green().into(),
+            Err(err) => Output::from("Error".red()).with(err.into())
         }
     }
 }
@@ -78,16 +122,15 @@ impl From<s2rs::api::Error> for Output {
 impl From<s2rs::api::LoginError> for Output {
     fn from(value: s2rs::api::LoginError) -> Self {
         type E = s2rs::api::LoginError;
-        Output::from("Login")
-        .with(match value {
+        match value {
             E::CookiesParsing(err) => Output::from("Parsing cookies").with(err.to_string()),
             E::HeaderParsing(err) => Output::from("Parsing Header").with(err.to_string()),
             E::HeadersConverting(err) => "Converting header".into(),
-            E::Parsing(err) => err.into(),
+            E::Parsing(err) => Output::from("Parsing").with(err),
             E::SessionIdCookieNotFound => "Finding Session ID cookie in response".into(),
             E::SetCookieHeaderNotFound => "Finding Set-Cookie header in response".into(),
-            E::This(err) => err.into(),
-        })
+            E::This(err) => Output::from("=>").with(err),
+        }
     }
 }
 
@@ -102,16 +145,12 @@ impl From<s2rs::api::LoginParseError> for Output {
 
 impl From<std::io::Error> for Output {
     fn from(value: std::io::Error) -> Self {
-        Output::from("IO").with(value.to_string())
+        value.to_string().into()
     }
 }
 
-impl From<store::WriteError> for Output {
-    fn from(value: store::WriteError) -> Self {
-        Output::from("Writing to store")
-        .with(match value {
-            store::WriteError::Io(err) => err.into(),
-            store::WriteError::Ser(err) => Output::from("Serialization").with(err.to_string()),
-        })
+impl From<serde_json::Error> for Output {
+    fn from(value: serde_json::Error) -> Self {
+        value.to_string().into()
     }
 }

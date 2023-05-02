@@ -3,6 +3,8 @@ use tokio::{fs::File, io::{AsyncWriteExt, AsyncReadExt}};
 use directories::ProjectDirs;
 use serde::{Serialize, Deserialize};
 
+use crate::output::Output;
+
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
 pub struct Sessions {
     pub items: HashMap<String, Session>
@@ -48,6 +50,15 @@ impl From<serde_json::Error> for WriteError {
 impl From<std::io::Error> for WriteError {
     fn from(value: std::io::Error) -> Self {
         Self::Io(value)
+    }
+}
+
+impl From<WriteError> for Output {
+    fn from(value: WriteError) -> Self {
+        match value {
+            WriteError::Io(err) => Output::from("IO").with(err),
+            WriteError::Ser(err) => Output::from("Serializing").with(err),
+        }
     }
 }
 // endregion: errors

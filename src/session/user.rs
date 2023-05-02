@@ -1,33 +1,15 @@
-use std::sync::Arc;
-use colored::Colorize;
-use crate::{input::UserCommand, store::Store, output::{Output, OutputErr}};
+use super::Session;
 
-pub async fn entry(name: String, command: UserCommand, store: Store, session: Arc<s2rs::Session>) -> Result<Output, Output> {
-    let this = session.user(name.as_str());
+impl Session {
+    pub async fn follow_user(&self, name: String) -> Result<(), s2rs::api::Error> {
+        self.scratch.user(name).follow().await
+    }
 
-    match command {
-        UserCommand::Comment { content, to, parent } => {
-            this.send_comment(content).await.output_err()?;
-            Ok(format![
-                "Leaving a comment on {}'s profile",
-                name.yellow(),
-            ].into())
-        },
+    pub async fn unfollow_user(&self, name: String) -> Result<(), s2rs::api::Error> {
+        self.scratch.user(name).unfollow().await
+    }
 
-        UserCommand::Follow => {
-            this.follow().await.output_err()?;
-            Ok(format![
-                "Following {}",
-                name.yellow()
-            ].into())
-        },
-
-        UserCommand::Unfollow => {
-            this.unfollow().await.output_err()?;
-            Ok(format![
-                "Unfollowing {}",
-                name.yellow()
-            ].into())
-        }
+    pub async fn comment_user(&self, name: String, content: String, to: Option<u64>, parent: Option<u64>) -> Result<(), s2rs::api::Error> {
+        self.scratch.user(name).send_comment(content).await
     }
 }
