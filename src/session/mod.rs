@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, io::stdin};
 use colored::Colorize;
 use rpassword::read_password as read_secret;
 use crate::{store::{Store, self}, output::Output};
@@ -7,8 +7,8 @@ use s2rs_derive::Forwarder;
 mod user;
 mod project;
 mod studio;
-mod forum;
-mod forum_post;
+mod topic;
+mod post;
 
 pub struct Session {
     store: Arc<Store>,
@@ -57,7 +57,8 @@ impl From<LoginError> for Output {
 
 #[derive(Forwarder)]
 pub enum SwitchError {
-    #[forward] StoreWrite(store::WriteError),
+    #[forward(serde_json::Error, std::io::Error)]
+    StoreWrite(store::WriteError),
     NotFound
 }
 
@@ -71,6 +72,25 @@ impl From<SwitchError> for Output {
 }
 
 impl Session {
+    pub async fn reset(&self) -> Output {
+        println!["{}", "Are you sure to fully reset app state? (y/n)".red()];
+        let mut input = String::new();
+        stdin().read_line(&mut input).unwrap();
+        let input = input.trim();
+
+        if input == "y" || input == "Y" {
+            self.store.reset().await;
+            "Done".green().into()
+        } else {
+            "Cancelled".yellow().into()
+        }
+    }
+
+    pub async fn remove_auth(&self, name: &str) -> Result<(), SwitchError> {
+        self.store.remove_session(name).await?;
+        Ok(())
+    }
+
     pub async fn add_auth(&self, name: String) -> Result<(), IoStoreError> {
         println!("Your scratch {}: (Character casing {} be correct)",
         "username".yellow(),

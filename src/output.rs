@@ -59,17 +59,25 @@ impl Output {
     }
 
     pub fn finish(self, mut ident: u8) -> String {
-        let mut result = self.this;
+        let mut result = String::new();
         
-        ident += 1;
-        for child in self.children {
-            result.push('\n');
+
+        if !self.this.is_empty() {
             for _ in 0..ident {
                 result.push_str("   ");
             }
-            result.push_str(&child.finish(ident + 1));
+            result.push_str(&self.this);
+            ident += 1;
+            if !self.children.is_empty() {
+                result.push('\n');
+            }
         }
-        result.push('\n');
+        
+        for child in self.children {
+            result.push_str(&child.finish(ident));
+            result.push('\n');
+        }
+        // result.push('\n');
         result
     }
 }
@@ -107,7 +115,7 @@ impl<T: Into<Output>, E: Into<Output>> From<Result<T, E>> for Output {
 impl<E: Into<Output>> From<Result<(), E>> for Output {
     fn from(value: Result<(), E>) -> Self {
         match value {
-            Ok(data) => "Success".green().into(),
+            Ok(_) => "Success".green().into(),
             Err(err) => Output::from("Error".red()).with(err.into())
         }
     }
@@ -143,6 +151,7 @@ impl From<s2rs::api::Error> for Output {
                 let mut output = Output::from(format![
                     "Status code {} `{}`", code.as_u16(), code.canonical_reason().unwrap_or("???")
                 ]);
+                #[allow(clippy::single_match)]
                 match code.as_u16() {
                     429 => output.push("Whoops! you are sending requests too fast!"),
                     _ => {}
@@ -159,11 +168,11 @@ impl From<s2rs::api::LoginError> for Output {
         match value {
             E::CookiesParsing(err) => Output::from("Parsing cookies").with(err.to_string()),
             E::HeaderParsing(err) => Output::from("Parsing Header").with(err.to_string()),
-            E::HeadersConverting(err) => "Converting header".into(),
+            E::HeadersConverting(_) => "Converting header".into(),
             E::Parsing(err) => Output::from("Parsing").with(err),
             E::SessionIdCookieNotFound => "Finding Session ID cookie in response".into(),
             E::SetCookieHeaderNotFound => "Finding Set-Cookie header in response".into(),
-            E::This(err) => Output::from("=>").with(err),
+            E::This(err) => Output::from("").with(err),
         }
     }
 }
@@ -172,7 +181,7 @@ impl From<s2rs::api::LoginParseError> for Output {
     fn from(value: s2rs::api::LoginParseError) -> Self {
         match value {
             s2rs::api::LoginParseError::EmptyArray => "Finding data in response".into(),
-            s2rs::api::LoginParseError::Expected(err) => "Expected (todo!)".into()
+            s2rs::api::LoginParseError::Expected(_) => "Expected (todo!)".into()
         }
     }
 }

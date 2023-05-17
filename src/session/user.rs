@@ -1,6 +1,6 @@
 use colored::Colorize;
-use s2rs::api::UserNameCheck;
-use crate::output::{Output, WithOutput};
+use s2rs::api::{UserNameCheck, SendComment};
+use crate::output::Output;
 use super::Session;
 
 impl From<UserNameCheck> for Output {
@@ -16,21 +16,21 @@ impl From<UserNameCheck> for Output {
 
 impl From<s2rs::api::User> for Output {
     fn from(value: s2rs::api::User) -> Self {
-        let mut output = Output::from("=>");
+        let mut output = Output::from("");
         output.push(
-            "Name: {}".with_output(value.name.yellow())
+            format!["Name: {}", value.name.yellow()]
         );
         output.push(
-            "ID: {}".with_output(value.id.to_string().purple())
+            format!["Id: {}", value.id.to_string().purple()]
         );
         output.push(
-            "Scratch Team: ".with_output(value.scratch_team.to_string().blue())
+            format!["Scratch Team?: {}", value.scratch_team.to_string().blue()]
         );
         output.push(
-            "History: ".with_output(value.history)
+            Output::from("History").with(value.history)
         );
         output.push(
-            "Profile: ".with_output(value.profile)
+            Output::from("Profile").with(value.profile)
         );
         output
     }
@@ -38,7 +38,7 @@ impl From<s2rs::api::User> for Output {
 
 impl From<s2rs::api::UserHistory> for Output {
     fn from(value: s2rs::api::UserHistory) -> Self {
-        let mut output = Output::from("=>");
+        let mut output = Output::from("");
         output.push(format![
             "Joined: {}", value.joined.cyan()
         ]);
@@ -48,18 +48,18 @@ impl From<s2rs::api::UserHistory> for Output {
 
 impl From<s2rs::api::UserProfile> for Output {
     fn from(value: s2rs::api::UserProfile) -> Self {
-        let mut output = Output::from("=>");
+        let mut output = Output::from("");
         output.push(
-            Output::from("Id").with(value.id.to_string().purple())
+            format!["Id: {}", value.id.to_string().purple()]
         );
         output.push(
-            Output::from("Country").with(value.country.yellow())
+            format!["Country: {}", value.country.yellow()]
         );
         output.push(
-            Output::from("Bio").with(value.bio.cyan())
+            format!["Bio: {}", value.bio.cyan()]
         );
         output.push(
-            Output::from("WIWO").with(value.status.cyan())
+            format!["Wiwo: {}", value.status.cyan()]
         );
         output
     }
@@ -81,7 +81,11 @@ impl Session {
     }
 
     pub async fn send_user_comment(&self, name: &str, content: String, parent_id: Option<u64>, to_id: Option<u64>) -> s2rs::api::Result<()> {
-        self.scratch.send_user_comment(name, content, parent_id, to_id).await
+        self.scratch.send_user_comment(name, &SendComment {
+            content,
+            parent_id,
+            to_id
+        }).await
     }
 
     pub async fn check_user(&self, name: &str) -> s2rs::api::Result<UserNameCheck> {
