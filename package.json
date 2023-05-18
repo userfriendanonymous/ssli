@@ -1,6 +1,6 @@
 {
   "name": "ssli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A useless CLI tool for interacting with Scratch",
   "main": "start.js",
   "directories": {

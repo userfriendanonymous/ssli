@@ -29,8 +29,8 @@ if (fs.existsSync(cargoDir)) {
     
 const features = process.env.npm_config_features ? `--features ${process.env.npm_config_features.replace(",", " ")}` : ""; 
 
-console.log(`Installing and compiling ssli 0.1.1 ${features} ...`);
-exec(`cargo install ssli --vers 0.1.1 ${features}`, (error, stdout, stderr) => {
+console.log(`Installing and compiling ssli 0.1.2 ${features} ...`);
+exec(`cargo install ssli --vers 0.1.2 ${features}`, (error, stdout, stderr) => {
   console.log(stdout);
   if (error || stderr) {
     console.log(error || stderr);
