@@ -61,7 +61,6 @@ impl Output {
     pub fn finish(self, mut ident: u8) -> String {
         let mut result = String::new();
         
-
         if !self.this.is_empty() {
             for _ in 0..ident {
                 result.push_str("   ");
@@ -69,13 +68,16 @@ impl Output {
             result.push_str(&self.this);
             ident += 1;
             if !self.children.is_empty() {
-                result.push('\n');
+                dbg![&result];
+                // result.push('\n');
             }
         }
         
-        for child in self.children {
+        for (idx, child) in self.children.into_iter().enumerate() {
+            if !(self.this.is_empty() && idx == 0) {
+                result.push('\n');
+            }
             result.push_str(&child.finish(ident));
-            result.push('\n');
         }
         // result.push('\n');
         result

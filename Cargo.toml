@@ -1,13 +1,19 @@
 [package]
-name = "claw"
+name = "scratch-claw"
 version = "0.1.0"
 edition = "2021"
+authors = ["userfriend"]
+license = "MIT OR Apache-2.0"
+description = "A useless CLI tool for interacting with Scratch"
+readme = "README.md"
+homepage = "https://github.com/userfriendanonymous/claw"
+repository = "https://github.com/userfriendanonymous/claw"
+keywords = ["cli", "scratch", "interact"]
+categories = ["command-line-utilities"]
 
 [profile.release]
 opt-level = "z"
 lto = true
-codegen-units = 1
-panic = "abort"
 
 [dependencies]
 clap = { version = "4.2.4", features = ["derive"] }
