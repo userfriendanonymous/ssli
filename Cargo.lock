@@ -1295,23 +1295,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
-name = "scratch-claw"
-version = "0.1.0"
-dependencies = [
- "clap",
- "colored",
- "directories",
- "magic-crypt",
- "rand",
- "rpassword",
- "s2rs",
- "s2rs-derive",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "security-framework"
 version = "2.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1403,6 +1386,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6528351c9bc8ab22353f9d776db39a20288e8d6c37ef8cfe3317cf875eecfc2d"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "sli"
+version = "0.1.1"
+dependencies = [
+ "clap",
+ "colored",
+ "directories",
+ "magic-crypt",
+ "rand",
+ "rpassword",
+ "s2rs",
+ "s2rs-derive",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

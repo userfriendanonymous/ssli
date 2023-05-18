@@ -1,6 +1,6 @@
 [package]
-name = "scratch-claw"
-version = "0.1.0"
+name = "sli"
+version = "0.1.1"
 edition = "2021"
 authors = ["userfriend"]
 license = "MIT OR Apache-2.0"
