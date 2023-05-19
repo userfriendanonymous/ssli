@@ -67,10 +67,6 @@ impl Output {
             }
             result.push_str(&self.this);
             ident += 1;
-            if !self.children.is_empty() {
-                dbg![&result];
-                // result.push('\n');
-            }
         }
         
         for (idx, child) in self.children.into_iter().enumerate() {
