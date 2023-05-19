@@ -83,7 +83,7 @@ pub struct Store {
 
 impl Store {
     fn dirs() -> Option<ProjectDirs> {
-        directories::ProjectDirs::from("org", "UserFriend", "claw")
+        directories::ProjectDirs::from("org", "UserFriend", "ssli")
     }
 
     pub async fn key(&self) -> Option<String> {
